@@ -1,0 +1,66 @@
+# Claude Code Personal Git Repository
+# This .gitignore keeps configuration and scripts while excluding personal data
+
+# Cache and temporary files
+cache/
+paste-cache/
+image-cache/
+.statusline_cache
+stats-cache.json
+session-env/
+
+# Personal data and history
+history.jsonl
+file-history/
+plans/
+projects/
+todos/
+TODO.md
+
+# Debug and logs
+debug/
+shell-snapshots/
+
+# Telemetry and analytics
+telemetry/
+statsig/
+
+# IDE-specific settings
+ide/
+
+**/.env
+
+# Downloads
+downloads/
+
+# Config directory (may contain personal settings)
+config/
+
+# Ignore all plugins except config and installed list
+plugins/*
+!plugins/config.json
+!plugins/installed_plugins.json
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
