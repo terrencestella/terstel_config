@@ -2,13 +2,10 @@
 [user]
 	name = Terrence Stella
 	email = terrence.s.stella@gmail.com
-# Please adapt and uncomment the following lines:
-#	name = Terrence Stella
-#	email = terrence.s.stella@gmail.com
 [core]
 	editor = nano
 [alias]
-	init-claude = "!f() {\n    git init &&\n    git submodule add https://github.com/terrencestella/claude-config.git .claude &&\n    echo \".claude/\" >> .gitignore &&\n    echo \"# $(basename $(pwd))\" > README.md &&\n    echo -e \".env\\nnode_modules/\\n*.log\\n.DS_Store\" > .gitignore &&\n    git add . &&\n    git commit -m \"Initial commit with Claude Code configuration\";\n}; f"
+
 [push]
 	autoSetupRemote = true
 [credential "https://github.com"]
