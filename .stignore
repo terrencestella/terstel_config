@@ -1,0 +1,6 @@
+// Plugins are machine-local, each machine manages its own installation
+claude/plugins
+// Git data and GitHub-only docs don't need to sync across machines
+.git
+README.md
+dotfiles-sync.md
