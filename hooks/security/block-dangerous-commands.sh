@@ -111,10 +111,27 @@ if echo "$COMMAND" | grep -qE '(curl|wget|nc|netcat)\s+.*\.(env|pem|key|secret)'
     exit 2
 fi
 
-# Reading .env files via cat/less/head/tail
-if echo "$COMMAND" | grep -qE '(cat|less|head|tail|more|bat)\s+.*\.env'; then
-    echo "⚠️ BLOCKED: Reading .env file via $COMMAND" >&2
-    echo "Tip: Use environment variables instead of reading .env directly" >&2
+# Reading sensitive files via display commands
+if echo "$COMMAND" | grep -qE '(cat|less|head|tail|more|bat|grep|rg)\s+.*\.(env|ssh)' || \
+   echo "$COMMAND" | grep -qE '(cat|less|head|tail|more|bat|grep|rg)\s+.*secrets\.(yml|yaml)' || \
+   echo "$COMMAND" | grep -qE '(cat|less|head|tail|more|bat|grep|rg)\s+.*/\.ssh/'; then
+    echo "⚠️ BLOCKED: Reading sensitive file via display command" >&2
+    echo "Command: $COMMAND" >&2
+    echo "Tip: Use .env.example for variable names, never read sensitive files directly" >&2
+    exit 2
+fi
+
+# sudo (privilege escalation)
+if echo "$COMMAND" | grep -qE '^\s*sudo\b'; then
+    echo "🛑 BLOCKED: sudo commands are not permitted" >&2
+    echo "Command: $COMMAND" >&2
+    exit 2
+fi
+
+# Firewall modifications
+if echo "$COMMAND" | grep -qE '^\s*afw\b'; then
+    echo "🛑 BLOCKED: firewall modification commands are not permitted" >&2
+    echo "Command: $COMMAND" >&2
     exit 2
 fi
 
