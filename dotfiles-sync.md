@@ -97,7 +97,7 @@ Fix: use the official Syncthing apt repository instead of distro packages.
 
 ## Adding a new machine
 
-1. Install Syncthing (`brew install syncthing` or `apt install syncthing`)
+1. Install prerequisites: `brew install syncthing jq` or `apt install syncthing jq` (`jq` is required by the Claude plugin sync hook)
 2. Start it and get the device ID: `syncthing cli show system | grep myID`
 3. On primary machine: add the new device and share the folder:
    ```bash
