@@ -16,16 +16,18 @@ All config lives in `~/dotfiles/` which Syncthing keeps in sync. The actual conf
 
 ```
 ~/dotfiles/
-├── zshrc                → ~/.zshrc
-├── gitconfig            → ~/.gitconfig
+├── zshrc                   → ~/.zshrc
+├── gitconfig               → ~/.gitconfig
 ├── claude/
-│   ├── CLAUDE.md        → ~/.claude/CLAUDE.md
-│   ├── settings.json    → ~/.claude/settings.json
-│   ├── hooks/           → ~/.claude/hooks/
-│   └── plugins/         → ~/.claude/plugins/
+│   ├── CLAUDE.md           → ~/.claude/CLAUDE.md
+│   ├── settings.json       → ~/.claude/settings.json
+│   ├── hooks/              → ~/.claude/hooks/
+│   └── commands/           → ~/.claude/commands/
 └── ccstatusline/
-    └── settings.json    → ~/.config/ccstatusline/settings.json
+    └── settings.json       → ~/.config/ccstatusline/settings.json
 ```
+
+`claude/plugins/` is excluded from Syncthing (see `.stignore`) — each machine manages its own plugin installations locally.
 
 ## How it works
 
@@ -59,12 +61,20 @@ fi
 
 macOS uses Homebrew. Ubuntu machines use apt-installed packages in `/usr/share/`.
 
+## Git tracking
+
+`~/dotfiles/` is also a git repository tracked at `github.com/terrencestella/terstel_config`. This provides version history on top of Syncthing's sync. Syncthing handles distribution across machines; git handles history and backup.
+
+`.git/` is excluded from Syncthing — each machine has its own local git repo pointing to the same remote.
+
 ## What is NOT synced
 
 - `~/.claude/projects/` — project-specific memory, stays local per machine
 - `~/.claude/todos/` — no global todos, use per-project markdown files instead
+- `~/.claude/plugins/` — each machine manages its own plugin installations
 - `~/.zsh_history` — shell history stays local
 - `~/.ssh/` — SSH keys never sync
+- `.git/`, `README.md`, `dotfiles-sync.md` — excluded via `.stignore` (git/GitHub-only)
 
 ## Potential weak points
 
@@ -101,4 +111,13 @@ Fix: use the official Syncthing apt repository instead of distro packages.
    syncthing cli config folders dotfiles devices add --device-id <PRIMARY-ID>
    ```
 5. Enable linger (Linux only): `sudo loginctl enable-linger <username>`
-6. Wait for sync, then create symlinks
+6. Wait for sync, then create symlinks:
+   ```bash
+   ln -s ~/dotfiles/zshrc ~/.zshrc
+   ln -s ~/dotfiles/gitconfig ~/.gitconfig
+   ln -s ~/dotfiles/claude/CLAUDE.md ~/.claude/CLAUDE.md
+   ln -s ~/dotfiles/claude/settings.json ~/.claude/settings.json
+   ln -s ~/dotfiles/claude/hooks ~/.claude/hooks
+   ln -s ~/dotfiles/claude/commands ~/.claude/commands
+   ln -sf ~/dotfiles/ccstatusline/settings.json ~/.config/ccstatusline/settings.json
+   ```
