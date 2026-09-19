@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "lines": [
     [
       {
@@ -24,15 +24,6 @@
         "id": "3",
         "type": "context-length",
         "color": "brightBlack"
-      },
-      {
-        "id": "6",
-        "type": "separator"
-      },
-      {
-        "id": "7",
-        "type": "context-bar",
-        "color": "yellow"
       }
     ],
     [
@@ -45,8 +36,8 @@
         "type": "separator"
       },
       {
-        "id": "b673a9d4-999a-41dc-9dde-fbcbe73b863a",
-        "type": "weekly-reset-timer"
+        "id": "f6fd3347-0df0-4625-a001-f324910abbbe",
+        "type": "session-usage"
       }
     ],
     []
@@ -56,6 +47,7 @@
   "colorLevel": 2,
   "inheritSeparatorColors": false,
   "globalBold": false,
+  "minimalistMode": false,
   "powerline": {
     "enabled": false,
     "separators": [
@@ -66,6 +58,7 @@
     ],
     "startCaps": [],
     "endCaps": [],
-    "autoAlign": false
+    "autoAlign": false,
+    "continueThemeAcrossLines": false
   }
 }

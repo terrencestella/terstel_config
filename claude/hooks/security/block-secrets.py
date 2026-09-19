@@ -15,7 +15,7 @@ Usage:
           "hooks": [
             {
               "type": "command",
-              "command": "python3 ~/.claude/hooks/block-secrets.py"
+              "command": "python3 ~/.claude/hooks/security/block-secrets.py"
             }
           ]
         }
@@ -37,25 +37,17 @@ from pathlib import Path
 # =============================================================================
 
 # Exact filenames to block
+#
+# Note: .env*, secrets.yaml/yml, and .ssh paths are intentionally NOT listed
+# here — Claude Code's native OS-level sandbox (read.denyOnly) and this
+# repo's settings.json permissions.deny already hard-block those at two other
+# layers. This file covers what those two layers don't.
 SENSITIVE_FILENAMES = {
-    # Environment files
-    '.env',
-    '.env.local',
-    '.env.development',
-    '.env.development.local',
-    '.env.test',
-    '.env.test.local',
-    '.env.production',
-    '.env.production.local',
-    '.env.staging',
-    
     # Secrets files
     'secrets.json',
-    'secrets.yaml',
-    'secrets.yml',
     'secrets.toml',
     '.secrets',
-    
+
     # Credentials
     'credentials.json',
     'credentials.yaml',
@@ -71,28 +63,39 @@ SENSITIVE_FILENAMES = {
     'id_dsa',
     'known_hosts',
     'authorized_keys',
-    
+
     # Package manager auth
     '.npmrc',
     '.pypirc',
     '.yarnrc',
-    '.docker/config.json',
-    
-    # Cloud credentials
-    '.aws/credentials',
-    '.aws/config',
-    'gcloud/credentials.db',
-    '.azure/credentials',
-    
+
     # Git credentials
     '.git-credentials',
     '.gitconfig',  # Can contain credentials
-    '.git/config', # Can contain tokens
-    
+
     # Database
     '.pgpass',
     '.my.cnf',
     '.mongorc.js',
+
+    # Shell/network auth
+    '.envrc',        # direnv - loads secrets into the shell on cd
+    '.netrc',        # per-host credentials for curl/ftp/etc
+    '.vault-token',  # HashiCorp Vault token
+}
+
+# Multi-segment path endings to block. A basename-only check (like
+# SENSITIVE_FILENAMES above) can never match these - "credentials" alone
+# isn't the identifying part, the containing directory is - so they're
+# matched against the full normalized path's ending instead.
+SENSITIVE_PATH_SUFFIXES = {
+    '.aws/credentials',
+    '.aws/config',
+    '.azure/credentials',
+    '.docker/config.json',
+    '.git/config',
+    'gcloud/credentials.db',
+    '.kube/config',
 }
 
 # File extensions to block
@@ -107,15 +110,26 @@ SENSITIVE_EXTENSIONS = {
     '.cer',      # Certificates
 }
 
-# Patterns to match anywhere in path
+# Patterns to match against the filename only (not the full path - matching
+# the full path means any file living under a directory like secrets/ blocks
+# reading this hook itself, since hooks/security/block-secrets.py contains
+# 'secret').
 SENSITIVE_PATH_PATTERNS = [
     'secret',
     'credential',
     'private_key',
     'privatekey',
-    '.env.',     # Catches .env.anything
-    '/secrets/', # Secrets directories
 ]
+
+# Template files are the documented way to share variable NAMES without values,
+# so they are allowed even when they match the patterns above. Without this,
+# '.env.' blocks .env.example, which defeats the purpose of having one.
+SAFE_NAME_MARKERS = (
+    '.example',
+    '.sample',
+    '.template',
+    '.dist',
+)
 
 # =============================================================================
 # HOOK LOGIC
@@ -131,21 +145,31 @@ def is_sensitive_file(file_path: str) -> tuple[bool, str]:
     
     path = Path(file_path)
     file_name = path.name
-    file_lower = file_path.lower()
-    
+    file_name_lower = file_name.lower()
+    normalized = file_path.replace('\\', '/').lower().rstrip('/')
+
+    # Templates first: .env.example and friends hold placeholders, never values.
+    if any(marker in file_name_lower for marker in SAFE_NAME_MARKERS):
+        return False, ""
+
     # Check exact filename match
     if file_name in SENSITIVE_FILENAMES:
         return True, f"'{file_name}' is a known sensitive file"
-    
+
     # Check extension
     if path.suffix.lower() in SENSITIVE_EXTENSIONS:
         return True, f"'{path.suffix}' files may contain private keys or certificates"
-    
-    # Check path patterns
+
+    # Check multi-segment path endings
+    for suffix in SENSITIVE_PATH_SUFFIXES:
+        if normalized.endswith(suffix):
+            return True, f"path ends with '{suffix}', a known sensitive location"
+
+    # Check filename patterns
     for pattern in SENSITIVE_PATH_PATTERNS:
-        if pattern in file_lower:
-            return True, f"path contains sensitive pattern '{pattern}'"
-    
+        if pattern in file_name_lower:
+            return True, f"filename contains sensitive pattern '{pattern}'"
+
     return False, ""
 
 
@@ -160,18 +184,7 @@ def extract_file_path(data: dict) -> str:
     for key in ['file_path', 'path', 'filename', 'file']:
         if key in tool_input:
             return tool_input[key]
-    
-    # For Bash tool, check the command for file references
-    command = tool_input.get('command', '')
-    if command:
-        # This is a simplified check - you might want more sophisticated parsing
-        for pattern in SENSITIVE_FILENAMES:
-            if pattern in command:
-                return pattern
-        for ext in SENSITIVE_EXTENSIONS:
-            if ext in command:
-                return command  # Return command as "file" so it gets blocked
-    
+
     return ""
 
 
@@ -197,7 +210,7 @@ def main():
             # Construct error message that will be fed back to Claude
             error_msg = f"""
 ╔══════════════════════════════════════════════════════════════════╗
-║                    🔒 SECURITY HOOK BLOCKED                       ║
+║                       SECURITY HOOK BLOCKED                       ║
 ╠══════════════════════════════════════════════════════════════════╣
 ║ Tool: {tool_name}
 ║ File: {file_path}

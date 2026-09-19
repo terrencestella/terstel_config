@@ -39,10 +39,12 @@ See [dotfiles-sync.md](dotfiles-sync.md) for the full setup, weak points, and in
 
 ## Claude Code hooks
 
-Security hooks live in `claude/hooks/security/`:
+Security hooks live in `claude/hooks/security/`. Destructive filesystem ops (`rm -rf` on root/home, `mkfs`, `dd` to disk devices, `sudo`) are handled by Claude Code's native OS-level sandbox instead of these hooks now:
 
 | Hook | Purpose |
 |---|---|
-| `block-dangerous-commands.sh` | Blocks rm -rf on sensitive paths, force pushes to main, curl-to-shell, etc. |
-| `block-secrets.py` | Prevents reading or writing .env, secrets, and SSH files |
+| `block-dangerous-commands.sh` | Blocks force-pushes to main, curl/wget-piped-to-shell, chmod 777, and reads of sensitive files via display commands |
+| `block-secrets.py` | Blocks reading/writing sensitive filenames not already covered by the sandbox or `settings.json`'s permission denylist (credentials, private keys, cloud/package-manager auth) |
 | `block-npm.sh` | Intercepts npm/npx commands and redirects to bun equivalents |
+
+`claude/hooks/sync-plugins.sh` is not a security hook — see [Plugin sync](dotfiles-sync.md#plugin-sync) in dotfiles-sync.md.

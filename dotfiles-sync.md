@@ -27,7 +27,7 @@ All config lives in `~/dotfiles/` which Syncthing keeps in sync. The actual conf
     └── settings.json       → ~/.config/ccstatusline/settings.json
 ```
 
-`claude/plugins/` is excluded from Syncthing (see `.stignore`) — each machine manages its own plugin installations locally.
+`claude/plugins/` is excluded from Syncthing (see `.stignore`) — each machine manages its own plugin installations locally. That local install state is kept in sync automatically by a hook; see [Plugin sync](#plugin-sync) below.
 
 ## How it works
 
@@ -71,10 +71,23 @@ macOS uses Homebrew. Ubuntu machines use apt-installed packages in `/usr/share/`
 
 - `~/.claude/projects/` — project-specific memory, stays local per machine
 - `~/.claude/todos/` — no global todos, use per-project markdown files instead
-- `~/.claude/plugins/` — each machine manages its own plugin installations
+- `~/.claude/plugins/` — marketplace clones and plugin caches are machine-local (see [Plugin sync](#plugin-sync) — the *set* of installed plugins is kept in sync even though this directory isn't)
 - `~/.zsh_history` — shell history stays local
 - `~/.ssh/` — SSH keys never sync
 - `.git/`, `README.md`, `dotfiles-sync.md` — excluded via `.stignore` (git/GitHub-only)
+
+## Plugin sync
+
+`~/.claude/plugins/` (marketplace clones, plugin caches, `known_marketplaces.json`) is machine-local and never synced — but `claude/settings.json` (which *is* synced) declares which marketplaces and plugins should exist, via `extraKnownMarketplaces` and `enabledPlugins`. `claude/hooks/sync-plugins.sh` reconciles the two, and is wired up as a `SessionStart` hook in `settings.json`, so it runs automatically every time `claude` starts on any machine:
+
+1. For each marketplace in `extraKnownMarketplaces` not yet known locally (`claude plugin marketplace list`), run `claude plugin marketplace add <repo>` to clone it.
+2. For each plugin in `enabledPlugins` not yet installed locally (`claude plugin list`), run `claude plugin install <plugin>@<marketplace>`.
+
+Both steps are idempotent and non-fatal per-item — a failed add/install is logged and retried on the next session start rather than aborting the rest.
+
+**Adding a new marketplace/plugin**: run `claude plugin marketplace add <owner>/<repo>` and `claude plugin install <plugin>@<marketplace>` on any one machine as normal. Both commands write to `extraKnownMarketplaces`/`enabledPlugins` in `settings.json`, which syncs via Syncthing; the hook then clones and installs on the other machines the next time `claude` starts there — no manual step needed on them.
+
+**Requires** `jq` and the `claude` CLI on `PATH` (see [Adding a new machine](#adding-a-new-machine)) and outbound HTTPS to GitHub for the marketplace clones. If either prerequisite is missing on a machine, the hook fails silently on that machine and plugins stay out of sync there until it's fixed.
 
 ## Potential weak points
 

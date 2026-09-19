@@ -1,9 +1,13 @@
 {
   "env": {
-    "CLAUDE_CODE_NO_FLICKER": "1",
-    "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-opus-4-6"
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "0",
+    "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1",
+    "DISABLE_GROWTHBOOK": "1"
   },
-  "includeCoAuthoredBy": false,
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
   "permissions": {
     "allow": [
       "WebFetch(domain:docs.anthropic.com)",
@@ -39,6 +43,8 @@
       "Bash(mkdir:*)",
       "Bash(touch:*)",
       "Bash(chmod:*)",
+      "Bash(mv:*)",
+      "Bash(cp:*)",
       "Bash(sed -n:*)",
       "Bash(sed --posix -n:*)",
       "Bash(sed -E -n:*)",
@@ -63,6 +69,13 @@
       "Bash(git submodule status:*)",
       "Bash(git submodule summary:*)",
       "Bash(git ls-remote:*)",
+      "Bash(git pull:*)",
+      "Bash(curl:*)",
+      "Bash(wget:*)",
+      "Bash(python:*)",
+      "Bash(py:*)",
+      "Bash(py --version)",
+      "Bash(where python)",
       "Bash(git fetch:*)",
       "Bash(git branch:*)",
       "Bash(git switch:*)",
@@ -73,7 +86,8 @@
       "Bash(git stash:*)",
       "Bash(git merge:*)",
       "Bash(git rebase:*)",
-      "Bash(git -c core.editor=true rebase --continue)"
+      "Bash(git -c core.editor=true rebase --continue)",
+      "Edit(**/CLAUDE.md)"
     ],
     "deny": [
       "Bash(git -C:*)",
@@ -87,36 +101,31 @@
       "Edit(**/.env)",
       "Edit(**/secrets.yml)",
       "Edit(**/secrets.yaml)",
-      "Edit(**/.ssh/**)",
-      "Write(**/.env)",
-      "Write(**/secrets.yml)",
-      "Write(**/secrets.yaml)",
-      "Write(**/.ssh/**)"
+      "Edit(**/.ssh/**)"
     ],
     "ask": [
-      "Edit(**/CLAUDE.md)",
-      "Write(**/CLAUDE.md)",
-      "Bash(python:*)",
-      "Bash(py:*)",
-      "Bash(py --version)",
-      "Bash(where python)",
       "Bash(rm:*)",
-      "Bash(mv:*)",
-      "Bash(cp:*)",
-      "Bash(curl:*)",
-      "Bash(wget:*)",
-      "Bash(docker:*)",
       "Bash(kubectl:*)",
       "Bash(aws:*)",
       "Bash(gcloud:*)",
       "Bash(az:*)",
-      "Bash(git push:*)",
-      "Bash(git pull:*)"
+      "Bash(git push:*)"
     ],
-    "defaultMode": "acceptEdits"
+    "defaultMode": "auto"
   },
-  "model": "haiku",
+  "model": "opus",
+  "disableClaudeAiConnectors": false,
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/sync-plugins.sh"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Read|Edit|Write",
@@ -133,6 +142,10 @@
           {
             "type": "command",
             "command": "bash ~/.claude/hooks/security/block-dangerous-commands.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/security/block-npm.sh"
           }
         ]
       }
@@ -141,20 +154,64 @@
   "statusLine": {
     "type": "command",
     "command": "bunx -y ccstatusline@latest",
-    "padding": 0
+    "padding": 0,
+    "refreshInterval": 5
   },
   "enabledPlugins": {
-    "context7@claude-plugins-official": true,
     "commit-commands@claude-plugins-official": true,
     "hookify@claude-plugins-official": true,
     "ralph-loop@claude-plugins-official": true,
-    "code-simplifier@claude-plugins-official": false,
+    "code-simplifier@claude-plugins-official": true,
     "superpowers@superpowers-marketplace": true,
     "skill-creator@claude-plugins-official": true,
-    "firecrawl@claude-plugins-official": true
+    "firecrawl@claude-plugins-official": true,
+    "codebase-mapper@eigenwise-toolshed": true,
+    "quartermaster@eigenwise-toolshed": true,
+    "live-rules@eigenwise-toolshed": true,
+    "mattpocock-skills@mattpocock": true
   },
+  "extraKnownMarketplaces": {
+    "eigenwise-toolshed": {
+      "source": {
+        "source": "github",
+        "repo": "Eigenwise/eigenwise-toolshed"
+      }
+    },
+    "mattpocock": {
+      "source": {
+        "source": "github",
+        "repo": "mattpocock/skills"
+      }
+    },
+    "claude-plugins-official": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/claude-plugins-official"
+      }
+    },
+    "superpowers-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "obra/superpowers-marketplace"
+      }
+    },
+    "astral-sh": {
+      "source": {
+        "source": "github",
+        "repo": "astral-sh/claude-code-plugins"
+      }
+    },
+    "claude-code-hooks": {
+      "source": {
+        "source": "github",
+        "repo": "karanb192/claude-code-hooks"
+      }
+    }
+  },
+  "outputStyle": "Concise",
   "sandbox": {
     "enabled": true,
+    "failIfUnavailable": true,
     "autoAllowBashIfSandboxed": true,
     "allowUnsandboxedCommands": true,
     "network": {
@@ -167,5 +224,7 @@
   },
   "alwaysThinkingEnabled": true,
   "advisorModel": "opus",
-  "preferredNotifChannel": "terminal_bell"
+  "tui": "fullscreen",
+  "preferredNotifChannel": "terminal_bell",
+  "fileCheckpointingEnabled": true
 }
