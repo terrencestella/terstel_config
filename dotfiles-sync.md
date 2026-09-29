@@ -21,8 +21,7 @@ All config lives in `~/dotfiles/` which Syncthing keeps in sync. The actual conf
 ├── claude/
 │   ├── CLAUDE.md           → ~/.claude/CLAUDE.md
 │   ├── settings.json       → ~/.claude/settings.json
-│   ├── hooks/              → ~/.claude/hooks/
-│   └── commands/           → ~/.claude/commands/
+│   └── hooks/              → ~/.claude/hooks/
 └── ccstatusline/
     └── settings.json       → ~/.config/ccstatusline/settings.json
 ```

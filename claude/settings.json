@@ -1,8 +1,7 @@
 {
   "env": {
-    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "0",
-    "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1",
-    "DISABLE_GROWTHBOOK": "1"
+    "DISABLE_TELEMETRY": "1",
+    "DO_NOT_TRACK": "1"
   },
   "attribution": {
     "commit": "",
@@ -113,7 +112,7 @@
     ],
     "defaultMode": "auto"
   },
-  "model": "opus",
+  "model": "sonnet",
   "disableClaudeAiConnectors": false,
   "hooks": {
     "SessionStart": [
@@ -215,7 +214,9 @@
     "autoAllowBashIfSandboxed": true,
     "allowUnsandboxedCommands": true,
     "network": {
-      "allowedDomains": []
+      "allowedDomains": [
+        "192.168.8.0/24"
+      ]
     },
     "filesystem": {},
     "excludedCommands": [
